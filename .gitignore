@@ -1,0 +1,12 @@
+# ignore MSVC config files
+*.ncb
+*.user
+*.sdf
+*.opensdf
+*.pch
+*.suo
+*.log
+
+# ignore generated build folders
+project/Debug/
+project/Release/
