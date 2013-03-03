@@ -25,7 +25,7 @@
 
 auto main() -> int
 {
-	std::string input_string = "(1 - 3 / (my_variable + 5)) + 143 - 6";
+	std::string input_string = "\nthing\n\tnext_block\n\tsame_block\n\n\tsame_block_still";
 	sooty::lexing::lexemes_t lexemes;
 	sooty::lexing::detail::accumulator_t acc(lexemes, input_string.size());
 	{
@@ -43,23 +43,30 @@ auto main() -> int
 		// have a banana
 		lexer_t BANANA =
 		+(
-			insert(1, main_channel, +match('0', '9'))
-			|
-			insert(2, main_channel, match('a', 'z') >> +(match('a', 'z') | match('_')) )
-			|
-			insert(10, main_channel, match("+"))
-			|
-			insert(11, main_channel, match("-"))
-			|
-			insert(12, main_channel, match("*"))
-			|
-			insert(13, main_channel, match("/"))
-			|
-			insert(20, main_channel, match("("))
-			|
-			insert(21, main_channel, match(")"))
-			|
-			insert(0, channel_t(2), match(' '))
+			// number
+			insert(1, main_channel, +match('0', '9')) |
+
+			// identifier
+			insert(2, main_channel, match('a', 'z') >> +(match('a', 'z') | match('_')) ) |
+
+			// operators
+			insert(10, main_channel, match("+")) |
+			insert(11, main_channel, match("-")) |
+			insert(12, main_channel, match("*")) |
+			insert(13, main_channel, match("/")) |
+
+			// brackets
+			insert(20, main_channel, match("(")) |
+			insert(21, main_channel, match(")")) |
+
+			// spaces
+			insert(0, channel_t(2), match(' ')) |
+
+			// tabs/newlines
+			(
+				ignore('\n') [ std::bind(&detail::accumulator_t::blockify, std::placeholders::_1) ] |
+				ignore('\t') [ std::bind(&detail::accumulator_t::inc_tabs, std::placeholders::_1) ]
+			)
 		);
 		
 		lexical_analysis_t()(acc, input_range, BANANA.backend());
@@ -76,30 +83,24 @@ auto main() -> int
 		  ;
 		
 		unary_expr =
-			(match(20, false), additive_expr, match(21, false))
-			|
-			match(1)
-			|
+			(match(20, false), additive_expr, match(21, false)) |
+			match(1) |
 			match(2)
 			;
 
 		unary_expr.debug_print();
 
 		multiplicative_expr = 
-			insert(12) [ multiplicative_expr, match(12, false), unary_expr ]
-			|
-			insert(13) [ multiplicative_expr, match(13, false), unary_expr ]
-			|
+			insert(12) [ multiplicative_expr, match(12, false), unary_expr ] |
+			insert(13) [ multiplicative_expr, match(13, false), unary_expr ] |
 			unary_expr
 			;
 
 		multiplicative_expr.debug_print();
 
 		additive_expr = 
-			insert(10) [ additive_expr, match(10, false), multiplicative_expr ]
-			|
-			insert(11) [ additive_expr, match(11, false), multiplicative_expr ]
-			|
+			insert(10) [ additive_expr, match(10, false), multiplicative_expr ] |
+			insert(11) [ additive_expr, match(11, false), multiplicative_expr ] |
 			multiplicative_expr
 			;
 			

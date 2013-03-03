@@ -9,6 +9,12 @@
       <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
       <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
     </Filter>
+    <Filter Include="source\frontend">
+      <UniqueIdentifier>{548875bd-97f1-4e38-87b1-2055c9e656f7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="source\frontend\lexical analysis">
+      <UniqueIdentifier>{37d77941-3869-406a-ae66-23a54319caf9}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\main.cpp">
