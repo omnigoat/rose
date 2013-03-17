@@ -25,6 +25,36 @@
 
 auto main() -> int
 {
+	/*{
+		using namespace sooty::lexing;
+		lexer_t L = match('a') >> match('b');
+	}
+
+	{
+		using namespace sooty::lexing;
+		lexer_t L = match('a') >> +match('b') >> match('c');
+	}
+
+	{
+		using namespace sooty::lexing;
+		lexer_t L = match('a') | +match('a') | match('c');
+	}
+
+	{
+		using namespace sooty::lexing;
+		lexer_t L = *(match('a') | +match('a') | match('c'));
+	}
+
+	{
+		using namespace sooty::lexing;
+		lexer_t L = !(match('a') | +match('a') | match('c')) >> match('d');
+	}
+*/
+	{
+		using namespace sooty::lexing;
+		lexer_t L = match('\n') >> *match('\t') >> !(*match(' ') >> match('\n'));
+	}
+
 	std::string input_string = "\nthing\n\tnext_block\n\tsame_block\n\n\tsame_block_still";
 	sooty::lexing::lexemes_t lexemes;
 	sooty::lexing::detail::accumulator_t acc(lexemes, input_string.size());
@@ -33,6 +63,7 @@ auto main() -> int
 		typedef sooty::common::performer_t<detail::analyser_t> lexical_analysis_t;
 		
 		channel_t main_channel(1);
+		channel_t ws_channel(2);
 
 		// input stream
 		std::stringstream input(input_string);
@@ -60,13 +91,14 @@ auto main() -> int
 			insert(21, main_channel, match(")")) |
 
 			// spaces
-			insert(0, channel_t(2), match(' ')) |
+			insert(0, ws_channel, match(' ')) |
 
 			// tabs/newlines
 			(
-				ignore('\n') [ std::bind(&detail::accumulator_t::blockify, std::placeholders::_1) ] |
-				ignore('\t') [ std::bind(&detail::accumulator_t::inc_tabs, std::placeholders::_1) ]
-			)
+				match('\n') >>
+				*match('\t') [ std::bind(&detail::accumulator_t::inc_tabs, std::placeholders::_1) ] >>
+				!(*match(' ') >> match('\n'))[ std::bind(&detail::accumulator_t::reset_tabs, std::placeholders::_1) ]
+			) [ std::bind(&detail::accumulator_t::blockify, std::placeholders::_1) ]
 		);
 		
 		lexical_analysis_t()(acc, input_range, BANANA.backend());
