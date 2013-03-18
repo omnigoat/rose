@@ -55,7 +55,7 @@ auto main() -> int
 		lexer_t L0 = match(' ') >> *match('a') >> *match('b') >> match('c');
 	}
 
-	std::string input_string = "no scope\n\tfirst scope\n\tsame_scope\n\t\t\t\n\tstill_same\n\t\tmore_scope\n\tone_scope\nno_scope_again";
+	std::string input_string = "1 * 4 + 5 - (3 - 10 / vegetable)";
 	sooty::lexing::lexemes_t lexemes;
 	sooty::lexing::detail::accumulator_t acc(lexemes, input_string.size());
 	{
@@ -91,7 +91,8 @@ auto main() -> int
 			insert(21, main_channel, match(")")) |
 
 			// spaces
-			insert(0, ws_channel, match(' ')) |
+			//insert(0, ws_channel, match(' ')) |
+			ignore(' ') |
 
 			(match('\n') >> *(match('\t') | match(' ') | match('\n')))
 				[ std::bind(&detail::accumulator_t::blockify, std::placeholders::_1) ]
