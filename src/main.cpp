@@ -58,10 +58,11 @@ auto main() -> int
 
 	{
 		using namespace sooty::lexing;
-		lexer_t L = match('\n') >> *match('\t') >> !(*match(' ') >> match('\n'));
+		lexer_t L0 = match(' ') >> *match('a') >> *match('b') >> match('c');
 	}
 	*/
 	std::string input_string = "\nthing\n\tnext_block\n\tsame_block\n\n\tsame_block_still\n\t\tdouble_block";
+
 	sooty::lexing::lexemes_t lexemes;
 	sooty::lexing::detail::accumulator_t acc(lexemes, input_string.size());
 	{
