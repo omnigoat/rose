@@ -17,24 +17,30 @@
 #include <sooty/lexing/lexer.hpp>
 #include <sooty/lexing/input_range.hpp>
 //=====================================================================
-#include <sooty/parsing/parser.hpp>
-#include <sooty/parsing/detail/executor.hpp>
+//#include <sooty/parsing/parser.hpp>
+//#include <sooty/parsing/detail/executor.hpp>
 //=====================================================================
 
 
 
 auto main() -> int
 {
-	/*{
+	/*
+	{
 		using namespace sooty::lexing;
 		lexer_t L = match('a') >> match('b');
 	}
-
+	
 	{
 		using namespace sooty::lexing;
-		lexer_t L = match('a') >> +match('b') >> match('c');
+		lexer_t L = match('a') >> +(match('b') | match('c')) >> match('d');
 	}
-
+	
+	{
+		using namespace sooty::lexing;
+		lexer_t L = (match('a') >> *(match('b') | (match('c') >> match('z'))) >> match('d')) >> match('e');
+	}
+	
 	{
 		using namespace sooty::lexing;
 		lexer_t L = match('a') | +match('a') | match('c');
@@ -49,13 +55,13 @@ auto main() -> int
 		using namespace sooty::lexing;
 		lexer_t L = !(match('a') | +match('a') | match('c')) >> match('d');
 	}
-*/
+
 	{
 		using namespace sooty::lexing;
 		lexer_t L = match('\n') >> *match('\t') >> !(*match(' ') >> match('\n'));
 	}
-
-	std::string input_string = "\nthing\n\tnext_block\n\tsame_block\n\n\tsame_block_still";
+	*/
+	std::string input_string = "\nthing\n\tnext_block\n\tsame_block\n\n\tsame_block_still\n\t\tdouble_block";
 	sooty::lexing::lexemes_t lexemes;
 	sooty::lexing::detail::accumulator_t acc(lexemes, input_string.size());
 	{
@@ -78,7 +84,7 @@ auto main() -> int
 			insert(1, main_channel, +match('0', '9')) |
 
 			// identifier
-			insert(2, main_channel, match('a', 'z') >> +(match('a', 'z') | match('_')) ) |
+			insert(2, main_channel, match('a', 'z') >> *(match('a', 'z') | match('_')) ) |
 
 			// operators
 			insert(10, main_channel, match("+")) |
@@ -96,14 +102,19 @@ auto main() -> int
 			// tabs/newlines
 			(
 				match('\n') >>
-				*match('\t') [ std::bind(&detail::accumulator_t::inc_tabs, std::placeholders::_1) ] >>
-				!(*match(' ') >> match('\n'))[ std::bind(&detail::accumulator_t::reset_tabs, std::placeholders::_1) ]
-			) [ std::bind(&detail::accumulator_t::blockify, std::placeholders::_1) ]
+				*match('\t')[&detail::accumulator_t::inc_tabs] >>
+				*match(' ') >>
+				!peek('\n')[&detail::accumulator_t::reset_tabs]
+			) [&detail::accumulator_t::blockify] |
+
+			// eof
+			eof()[&detail::accumulator_t::blockify]
 		);
 		
-		lexical_analysis_t()(acc, input_range, BANANA.backend());
+		lexical_analysis_t()(acc, input_range, BANANA.backends());
 	}
 	
+	#if 0
 	sooty::parsing::parsemes_t parsemes;
 	{
 		using namespace sooty::parsing;
@@ -145,10 +156,11 @@ auto main() -> int
 
 		parsemes = pracc.container();
 	}
+	#endif
 	
 	std::cout << lexemes << std::endl;
 	
-	std::cout << parsemes << std::endl;
+	//std::cout << parsemes << std::endl;
 }
 
 
